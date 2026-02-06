@@ -48,7 +48,7 @@ metadata:
   name: whoami
   namespace: default
   labels:
-    bfe-product: demo
+    bfe-product: AI_product 
 spec:
   ports:
     - name: http

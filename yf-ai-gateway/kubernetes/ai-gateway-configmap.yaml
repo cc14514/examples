@@ -17,9 +17,9 @@ kind: ConfigMap
 metadata:
   name: ai-gateway-conf
 data:
-  api_server.toml: |-
+  ai_gateway_api.toml: |-
     # ---------------------------------
-    # API Server Config
+    # AI GATEWAY API Config
     [Server]
     # server port
     ServerPort = 8183
@@ -33,7 +33,7 @@ data:
     # access log config
     [Loggers.access]
     LogName     = "access"
-    LogLevel    = "INFO"
+    LogLevel    = "DEBUG"
     RotateWhen  = "MIDNIGHT"
     BackupCount = 1
     Format      = "[%D %T] [%L] [%S] %M"
@@ -62,6 +62,7 @@ data:
     MaxAllowedPacket     = 67108864
     ParseTime            = true
     AllowNativePasswords = true
+
 
     Driver              = "mysql"
     MaxOpenConns        = 500
@@ -98,3 +99,15 @@ data:
     StaticFilePath = "./static"
     # debug info will be add to response when this option be opend
     Debug = false
+    # support AI product name
+    AIRouteInnerProductName = "AI_product"
+
+    [RedisConf]
+    # bns addr
+    Bns = "BFE.poc-redis-wx"
+
+    # ms
+    ConnectTimeout = 10
+    ReadTimeout = 5
+    WriteTimeout = 5
+    MaxIdle = 10

@@ -84,8 +84,8 @@ spec:
               containerPort: 8284
           volumeMounts:
             - name: conf
-              mountPath: /home/work/ai-gateway/conf/api_server.toml
-              subPath: api_server.toml
+              mountPath: /home/work/ai-gateway/conf/ai_gateway_api.toml
+              subPath: ai_gateway_api.toml
               readOnly: true
           readinessProbe:
             httpGet:

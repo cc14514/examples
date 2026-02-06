@@ -39,9 +39,9 @@ resources:
 #     newTag: v1.8.0-debug
 images:
   - name: ghcr.io/bfenetworks/bfe
-    newName: ghcr.io/bfenetworks/bfe
+    newName: ghcr.io/cc14514/bfe
     # newName: ghcr.nju.edu.cn/bfenetworks/bfe
-    newTag: v1.8.0-debug
+    newTag: latest
 
   - name: ghcr.io/yf-networks/ai-gateway
     newName: ghcr.io/cc14514/ai-gateway
