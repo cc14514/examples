@@ -15,16 +15,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ai-gateway
+  name: ai-gateway-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ai-gateway
+      app: ai-gateway-api
   template:
     metadata:
       labels:
-        app: ai-gateway
+        app: ai-gateway-api
     spec:
       securityContext:
         runAsUser: 10001
@@ -73,9 +73,9 @@ spec:
                 sleep 5
               done
       containers:
-        - name: ai-gateway
+        - name: ai-gateway-api
           # Update this image to your registry.
-          image: ghcr.io/yf-networks/ai-gateway:latest
+          image: ghcr.io/yf-networks/ai-gateway-api:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -84,8 +84,12 @@ spec:
               containerPort: 8284
           volumeMounts:
             - name: conf
-              mountPath: /home/work/ai-gateway/conf/ai_gateway_api.toml
+              mountPath: /home/work/api-server/conf/ai_gateway_api.toml
               subPath: ai_gateway_api.toml
+              readOnly: true
+            - name: conf
+              mountPath: /home/work/api-server/conf/name_conf.data
+              subPath: name_conf.data
               readOnly: true
           readinessProbe:
             httpGet:
@@ -108,15 +112,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ai-gateway
+  name: ai-gateway-api
 spec:
   selector:
-    app: ai-gateway
+    app: ai-gateway-api
   ports:
     - name: http
       port: 8183
       targetPort: 8183
-      nodePort: 30083
+      nodePort: 30183
     - name: monitor
       port: 8284
       targetPort: 8284

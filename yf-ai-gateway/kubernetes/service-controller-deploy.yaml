@@ -65,7 +65,7 @@ spec:
           image: ghcr.io/bfenetworks/service-controller:latest
           command: [ "/service-controller" ]
           args:
-            - '-bfe-api-addr=http://ai-gateway.ai-gateway-system.svc.cluster.local:8183'
+            - '-bfe-api-addr=http://ai-gateway-api.ai-gateway-system.svc.cluster.local:8183'
             - '-bfe-api-token=Token eT5QWkLhQmp6lO4NWxAc'
             - '-k8s-cluster-name=szyf'
             - '-namespace=default'

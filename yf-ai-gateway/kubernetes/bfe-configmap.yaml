@@ -17,6 +17,19 @@ kind: ConfigMap
 metadata:
   name: bfe-config
 data:
+  # conf/server_data_conf/name_conf.data
+  name_conf.data: |
+    {
+        "Version": "init version",
+        "Config": {
+            "BFE.poc-redis-wx": [{
+                    "Host": "redis.ai-gateway-system.svc.cluster.local",
+                    "Port":  6379,
+                    "Weight": 10
+            }]
+        }
+    }
+
   bfe.conf: |
     [Server]
     # listen port for http request
@@ -212,12 +225,12 @@ data:
     
     ReloadIntervalMs        = 5000
     
-    ConfServer              = "http://ai-gateway.ai-gateway-system.svc.cluster.local:8183"
+    ConfServer              = "http://ai-gateway-api.ai-gateway-system.svc.cluster.local:8183"
     # Token 获取参考 https://github.com/bfenetworks/dashboard/blob/develop/docs/zh-cn/user-guide/system-view/user-management.md#token%E7%AE%A1%E7%90%86
     ConfTaskHeaders         = {"Authorization" = "Token c5QFb-MrlKktJbOid2M3"}
     ConfTaskTimeoutMs       = 1500
     
-    ExtraFileServer         = "http://ai-gateway.ai-gateway-system.svc.cluster.local:8183/inner-api/v1/configs/extra_files/"
+    ExtraFileServer         = "http://ai-gateway-api.ai-gateway-system.svc.cluster.local:8183/inner-api/v1/configs/extra_files/"
     # Token 获取参考 https://github.com/bfenetworks/dashboard/blob/develop/docs/zh-cn/user-guide/system-view/user-management.md#token%E7%AE%A1%E7%90%86
     ExtraFileTaskHeaders    = {"Authorization" = "Token c5QFb-MrlKktJbOid2M3"}
     ExtraFileTaskTimeoutMs  = 1500

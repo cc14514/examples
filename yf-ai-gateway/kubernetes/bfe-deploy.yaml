@@ -20,7 +20,7 @@ metadata:
   labels:
     app: bfe
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: bfe
@@ -48,6 +48,11 @@ spec:
           mountPath: /home/work/bfe/conf/bfe.conf
           subPath: bfe.conf
           readOnly: false
+        - name: bfe-conf
+          mountPath: /home/work/bfe/conf/server_data_conf/name_conf.data
+          subPath: name_conf.data
+          readOnly: false
+        
         - name: conf-agent-conf
           mountPath: /home/work/conf-agent/conf/conf-agent.toml
           subPath: conf-agent.toml

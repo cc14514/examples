@@ -39,26 +39,26 @@ resources:
 #     newTag: v1.8.0-debug
 images:
   - name: ghcr.io/bfenetworks/bfe
-    newName: ghcr.io/cc14514/bfe
+    newName: ghcr.nju.edu.cn/cc14514/bfe
     # newName: ghcr.nju.edu.cn/bfenetworks/bfe
     newTag: latest
 
-  - name: ghcr.io/yf-networks/ai-gateway
-    newName: ghcr.io/cc14514/ai-gateway
+  - name: ghcr.io/yf-networks/ai-gateway-api
+    newName: ghcr.nju.edu.cn/cc14514/ai-gateway-api
     # newName: ghcr.nju.edu.cn/bfenetworks/ai-gateway
     newTag: latest
 
   - name: ghcr.io/bfenetworks/service-controller
-    newName: ghcr.io/bfenetworks/service-controller
+    newName: ghcr.nju.edu.cn/bfenetworks/service-controller
     # newName: ghcr.nju.edu.cn/bfenetworks/service-controller
     newTag: latest
 
   # ghcr.io/servercontainers/mysql:latest
   - name: ghcr.io/cc14514/mysql 
-    newName: ghcr.io/cc14514/mysql 
+    newName: ghcr.nju.edu.cn/cc14514/mysql 
     # newName: ghcr.nju.edu.cn/cc14514/mysql
     newTag: "8"
 
   - name: ghcr.io/cc14514/redis
-    newName: ghcr.io/cc14514/redis
+    newName: ghcr.nju.edu.cn/cc14514/redis
     newTag: "6.2"

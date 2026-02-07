@@ -17,6 +17,19 @@ kind: ConfigMap
 metadata:
   name: ai-gateway-conf
 data:
+  # conf/name_conf.data
+  name_conf.data: |
+    {
+        "Version": "init version",
+        "Config": {
+            "BFE.poc-redis-wx": [{
+                    "Host": "redis.ai-gateway-system.svc.cluster.local",
+                    "Port":  6379,
+                    "Weight": 10
+            }]
+        }
+    }
+
   ai_gateway_api.toml: |-
     # ---------------------------------
     # AI GATEWAY API Config

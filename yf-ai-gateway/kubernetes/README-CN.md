@@ -1,22 +1,23 @@
-# BFE Kubernetes 部署示例
+# AI Gateway Kubernetes 部署示例（BFE + AI Gateway API）
 
 ## 概述
 
-![BFE Kubernetes](../../docs/images/bfe-k8s.png)
+![BFE Kubernetes](./.images/ai-gateway-k8s.png)
 
 本示例在 `ai-gateway-system` 命名空间中演示了若干关键组件及其交互：
 - 数据面（bfe 与 conf-agent）负责流量转发与接入控制；
-- 控制面（ai-gateway 与 dashboard）负责策略下发与管理；
+- 控制面（ai-gateway-api）负责策略/配置下发接口（示例中仅部署 API Server，不包含 dashboard）；
+- 基础依赖（MySQL、Redis）为控制面提供存储与依赖服务；
 - 服务发现（service-controller）负责发现并同步后端服务；
 - 示例服务 whoami 用于验证路由；
 - 组件间通过 Kubernetes Service/DNS 相互通信，如：
-  - ai-gateway.ai-gateway-system.svc.cluster.local
+  - ai-gateway-api.ai-gateway-system.svc.cluster.local
   - mysql.ai-gateway-system.svc.cluster.local
+  - redis.ai-gateway-system.svc.cluster.local
 
 注意：
-- ai-gateway 与 MySQL 提供持久化与控制数据；
-  - 示例中的 MySQL 会随清单重建并重新初始化
-  - 不能直接用于生产环境
+- 示例中的 MySQL / Redis 使用 `emptyDir` 作为存储，会随 Pod 重启丢失数据；
+- 本示例偏向演示与联通性验证，不能直接用于生产环境。
 
 
 主要文件概览：
@@ -27,9 +28,10 @@
 | `kustomization.yaml` | kustomize 资源汇总与启用/禁用项 |
 | `bfe-configmap.yaml` | bfe 配置（bfe.conf、conf-agent.toml 等） |
 | `bfe-deploy.yaml` | bfe 数据面 Deployment 清单 |
-| `ai-gateway-configmap.yaml` | API Server 配置（DB 连接、鉴权示例） |
-| `ai-gateway-deploy.yaml` | API Server Deployment 清单 |
+| `ai-gateway-configmap.yaml` | ai-gateway-api 配置（DB/Redis 连接、鉴权示例） |
+| `ai-gateway-deploy.yaml` | ai-gateway-api Deployment/Service 清单 |
 | `mysql-deploy.yaml` | MySQL Deployment（示例数据库与存储配置） |
+| `redis-deploy.yaml` | Redis Deployment/Service（示例缓存配置） |
 | `service-controller-deploy.yaml` | 服务发现控制器 Deployment 清单 |
 | `whoami-deploy.yaml` | 示例测试服务 whoami 的 Deployment 清单 |
 
@@ -62,8 +64,8 @@ images:
     newName: ghcr.nju.edu.cn/bfenetworks/bfe
     newTag: v1.8.0-debug
 
-  - name: ghcr.io/bfenetworks/ai-gateway
-    newName: ghcr.nju.edu.cn/bfenetworks/ai-gateway
+  - name: ghcr.io/yf-networks/ai-gateway-api
+    newName: ghcr.nju.edu.cn/yf-networks/ai-gateway-api
     newTag: latest
 
   - name: ghcr.io/bfenetworks/service-controller
@@ -73,23 +75,34 @@ images:
   - name: ghcr.io/cc14514/mysql
     newName: ghcr.nju.edu.cn/cc14514/mysql
     newTag: "8"
+
+  - name: ghcr.io/cc14514/redis
+    newName: ghcr.nju.edu.cn/cc14514/redis
+    newTag: "6.2"
 ```
 
 > 建议只改 `newName`（仓库前缀）和 `newTag`（版本），保持 `name:` 与各个 YAML 中实际使用的镜像名字一致。
 
-> 注意：MySQL 的镜像会同时用于 MySQL Deployment 以及 ai-gateway 的 initContainer（用于等待数据库 schema 初始化完成），因此建议二者保持一致，且镜像内需包含 `mysql`/`mysqladmin` 客户端。
+> 注意：MySQL 的镜像会同时用于 MySQL Deployment 以及 ai-gateway-api 的 initContainer（用于等待数据库 schema 初始化完成），因此建议二者保持一致，且镜像内需包含 `mysql`/`mysqladmin` 客户端。
 
 ### 部署 bfe 服务（数据面、控制面、服务发现）
 
 ```bash
-cd examples/kubernetes
+cd kubernetes
 kubectl apply -k .
 ```
+
+说明：`kubectl apply -k .` 会在 `ai-gateway-system` 命名空间中部署：
+- bfe + conf-agent
+- ai-gateway-api
+- mysql + 初始化 Job
+- redis
+- service-controller
 
 ### 部署测试服务（验证 bfe 服务启动成功后）
 
 ```bash
-cd examples/kubernetes
+cd kubernetes
 kubectl apply -f whoami-deploy.yaml 
 ```
 
@@ -107,22 +120,23 @@ ai-gateway-system   Active   29h
 
 [root@iTM ~]# kubectl -n ai-gateway-system get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
-ai-gateway-655fdffbf-hwvgw                1/1     Running   0          29h
+ai-gateway-api-xxxxxxxxxx-xxxxx            1/1     Running   0          29h
 bfe-85f4d45ddf-4xwdz                      1/1     Running   0          29h
-bfe-85f4d45ddf-srnxd                      1/1     Running   0          29h
 bfe-service-controller-6867d57767-92b5m   1/1     Running   0          29h
 mysql-d768d5d4d-fj4j5                     1/1     Running   0          29h
+redis-xxxxxxxxxx-xxxxx                     1/1     Running   0          29h
 
 [root@iTM ~]# kubectl -n ai-gateway-system get service
 NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-ai-gateway   NodePort    10.105.122.39   <none>        8183:30083/TCP,8284:30786/TCP                  29h
-bfe          NodePort    10.108.55.8     <none>        8080:30080/TCP,8443:30443/TCP,8421:30421/TCP   29h
-mysql        ClusterIP   None            <none>        3306/TCP                                       29h
+ai-gateway-api   NodePort    10.105.122.39   <none>        8183:30183/TCP,8284/TCP                        29h
+bfe             NodePort    10.108.55.8     <none>        8080:30080/TCP,8443:30443/TCP,8421:30421/TCP   29h
+mysql           ClusterIP   None            <none>        3306/TCP                                       29h
+redis           ClusterIP   10.96.xx.yy     <none>        6379/TCP                                       29h
 [root@iTM ~]#
 ```
 
 - 登录 dashboard:
-  - 浏览器访问 http://{NodeIP}:30083
+  - 浏览器访问 http://{NodeIP}:30183
   - 默认账号/密码：admin/admin
 
 ## 清理
@@ -130,7 +144,7 @@ mysql        ClusterIP   None            <none>        3306/TCP                 
 - 清理测试服务
 
 ```bash
-cd examples/kubernetes
+cd kubernetes
 kubectl delete -f whoami-deploy.yaml
 ```
 
@@ -140,7 +154,7 @@ kubectl delete -f whoami-deploy.yaml
 - 清理 bfe 服务（数据面、控制面、服务发现）
 
 ```bash
-cd examples/kubernetes
+cd kubernetes
 kubectl delete -k . 
 ```
 
@@ -189,6 +203,7 @@ kubectl -n ai-gateway-system delete -f service-controller-deploy.yaml
 kubectl -n ai-gateway-system delete -f ai-gateway-deploy.yaml
 kubectl -n ai-gateway-system delete -f ai-gateway-configmap.yaml
 kubectl -n ai-gateway-system delete -f mysql-deploy.yaml
+kubectl -n ai-gateway-system delete -f redis-deploy.yaml
 kubectl -n ai-gateway-system delete -f bfe-deploy.yaml
 kubectl -n ai-gateway-system delete -f bfe-configmap.yaml
 
@@ -198,9 +213,9 @@ kubectl delete -f whoami-deploy.yaml
 
 ## 重启 
 
-示例中 MySQL Pod 每次重启时会重新初始化并丢失已有数据,
+示例中 MySQL/Redis Pod 使用 `emptyDir`，每次重启都可能丢失已有数据；
 若希望在仅更新其它 Pod（例如修改配置后 `kubectl apply -k .`）时保留已有数据库,
-可在 `examples/kubernetes/kustomization.yaml` 中临时注释或移除 `mysql-deploy.yaml`。
+可在 `kustomization.yaml` 中临时注释或移除 `mysql-deploy.yaml`（以及按需移除 `redis-deploy.yaml`）。
 然后再执行 `kubectl apply -k .` 进行重启。
 
 ## 关键配置 
@@ -215,29 +230,29 @@ kubectl delete -f whoami-deploy.yaml
 
 - 服务端口：示例暴露 8080，NodePort 30080，用于对外提供服务。
 
-### 控制面 ai-gateway 与 mysql
+### 控制面 ai-gateway-api 与 MySQL/Redis
 
-- 数据库连接：ai-gateway-configmap.yaml 中 DB_HOST / DB_PORT / DB_USER / DB_PASSWORD（示例为明文）。
-  - 在生产环境请改为 Kubernetes Secret。
+- 数据库连接：`ai-gateway-configmap.yaml` 的 `ai_gateway_api.toml` 中配置 `Databases.bfe_db.Addr`（示例为 `mysql.ai-gateway-system.svc.cluster.local:3306`）。
+  - 密码在示例中为明文/Secret 混用（MySQL Secret 中的 root 密码 + toml 中的 Passwd），生产环境请统一改为 Secret 并避免明文。
 
-- 鉴权 Token：示例 Token 已经预置在 `ai-gateway-configmap.yaml` 与 `service-controller-deploy.yaml` 中。
+- 鉴权 Token：示例 Token 已经预置在 `bfe-configmap.yaml`（conf-agent.toml）与 `service-controller-deploy.yaml` 中。
   - 生产环境必须使用 Secret、短期或动态凭证。
-  - 生产环境需要预先在控制面 [dashboard](https://github.com/bfenetworks/dashboard/blob/develop/README.md) 中创建 Token。
+  - 生产环境需要预先在控制面 [dashboard](https://github.com/yf-networks/ai-gateway-web/tree/develop) 中创建 Token。
 
 - MySQL 存储：mysql-deploy.yaml 为方便一键部署快速搭建，使用了 emptyDir 卷，重启 pod 后数据会丢失，不适用于生产环境。
   - 生产必须使用 PV/PVC、指定 StorageClass，并配置备份策略。
 
-- MySQL 初始化：示例通过 Job 执行 `db_ddl.sql` 初始化表结构；ai-gateway 在启动前会通过 initContainer 等待 `open_bfe` 中表创建完成。
-  - 如环境启动较慢，可在 mysql-deploy.yaml 中调大 `startupProbe` 的容忍时间（例如增大 `failureThreshold`）。
+- MySQL 初始化：`mysql-deploy.yaml` 中通过 Job 执行 `db_ddl.sql` 初始化表结构；`ai-gateway-deploy.yaml` 中 initContainer 会等待 `open_bfe` 表创建完成。
+  - 如环境启动较慢，可在 `mysql-deploy.yaml` 中调大 `startupProbe` 的容忍时间（例如增大 `failureThreshold`）。
 
 
-- 更多请参见：[dashboard](https://github.com/bfenetworks/dashboard/blob/develop/README.md)
+- 更多请参见：[dashboard](https://github.com/yf-networks/ai-gateway-web/tree/develop)
 
 ### 服务发现 service-controller 与 whoami
 
 - 发现规则：service-controller-deploy.yaml 中 args 或 env 定义发现策略、标签选择器或 API Server 地址，按需调整以匹配你的服务标签/注解。
 
-- whoami 端口：whoami-deploy.yaml 中 spec.template.spec.containers[].ports 必须与对应 Service 的端口一致。
+- whoami 端口：`whoami-deploy.yaml` 中容器端口为 80，Service 对外端口为 8080（targetPort=80）。
 
 - 更多请参见：[service-controller](https://github.com/bfenetworks/service-controller/blob/main/README.md)
 
