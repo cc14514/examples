@@ -6,7 +6,7 @@
 
 本示例在 `ai-gateway-system` 命名空间中演示了若干关键组件及其交互：
 - 数据面（bfe 与 conf-agent）负责流量转发与接入控制；
-- 控制面（ai-gateway-api）负责策略/配置下发接口（示例中仅部署 API Server，不包含 dashboard）；
+- 控制面（ai-gateway-api）负责策略/配置下发接口；
 - 基础依赖（MySQL、Redis）为控制面提供存储与依赖服务；
 - 服务发现（service-controller）负责发现并同步后端服务；
 - 示例服务 whoami 用于验证路由；

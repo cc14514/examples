@@ -6,7 +6,7 @@
 
 This example deploys several key components and demonstrates how they work together in the `ai-gateway-system` namespace:
 - Data plane (bfe and conf-agent): traffic forwarding and access control
-- Control plane (ai-gateway-api): configuration/policy delivery API (this example deploys API Server only, without dashboard)
+- Control plane (ai-gateway-api): configuration/policy delivery API
 - Base dependencies (MySQL, Redis): storage and dependency services for the control plane
 - Service discovery (service-controller): discovers and syncs backend services
 - Demo service (whoami): used to validate routing
